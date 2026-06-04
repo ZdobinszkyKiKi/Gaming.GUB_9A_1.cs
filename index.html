@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON.GRID — Gaming Bar Budapest</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff0080;
+    --neon-purple: #bf00ff;
+    --neon-yellow: #ffff00;
+    --neon-green: #39ff14;
+    --dark-bg: #030508;
+    --dark-card: #0a0d14;
+    --dark-border: #1a1f2e;
+    --text-primary: #e0e8ff;
+    --text-muted: #6b7a9a;
+    --grid-color: rgba(0, 245, 255, 0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 245, 255, 0.012) 2px,
+      rgba(0, 245, 255, 0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* GRID BACKGROUND */
+  .grid-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAVIGATION */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: rgba(3, 5, 8, 0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+    padding: 0 2rem;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 15px rgba(0, 245, 255, 0.5));
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0.2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--neon-cyan);
+    border-color: rgba(0, 245, 255, 0.3);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    background: rgba(0, 245, 255, 0.05);
+  }
+
+  .nav-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-green);
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: var(--neon-green);
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+    box-shadow: 0 0 8px var(--neon-green);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* PAGES */
+  .page {
+    display: none;
+    min-height: 100vh;
+    padding-top: 70px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at center, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 0, 128, 0.06) 0%, transparent 40%),
+                radial-gradient(ellipse at 20% 80%, rgba(191, 0, 255, 0.06) 0%, transparent 40%);
+    animation: aurora 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora {
+    0% { transform: rotate(0deg) scale(1); }
+    100% { transform: rotate(5deg) scale(1.05); }
+  }
+
+  .hero-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 6px;
+    color: var(--neon-pink);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 15px var(--neon-pink);
+    animation: fadeInUp 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(3rem, 10vw, 8rem);
+    font-weight: 900;
+    line-height: 0.9;
+    margin-bottom: 0.5rem;
+    position: relative;
+    animation: fadeInUp 0.8s 0.1s ease both;
+  }
+
+  .hero-title .line1 {
+    display: block;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 30px var(--neon-cyan), 0 0 60px rgba(0, 245, 255, 0.4);
+    animation: glitch 4s infinite;
+  }
+
+  .hero-title .line2 {
+    display: block;
+    color: var(--neon-pink);
+    text-shadow: 0 0 30px var(--neon-pink), 0 0 60px rgba(255, 0, 128, 0.4);
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% { transform: translate(0); clip-path: none; }
+    92% { transform: translate(-3px, 1px); }
+    94% { transform: translate(3px, -1px); }
+    96% { transform: translate(-2px, 2px); }
+    98% { transform: translate(2px, -2px); }
+  }
+
+  .hero-subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-weight: 300;
+    letter-spacing: 8px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s 0.2s ease both;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeInUp 0.8s 0.3s ease both;
+  }
+
+  .btn-primary {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    background: transparent;
+    border: 2px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-shadow: 0 0 10px var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.2), inset 0 0 20px rgba(0, 245, 255, 0.05);
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover {
+    background: rgba(0, 245, 255, 0.15);
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.5), inset 0 0 40px rgba(0, 245, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    background: transparent;
+    border: 2px solid var(--neon-pink);
+    color: var(--neon-pink);
+    cursor: pointer;
+    transition: all 0.3s;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 0, 128, 0.15);
+    box-shadow: 0 0 40px rgba(255, 0, 128, 0.5);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: rgba(0, 245, 255, 0.03);
+    border-top: 1px solid rgba(0, 245, 255, 0.15);
+    border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 20px var(--neon-cyan);
+    display: block;
+  }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* SECTIONS */
+  .section {
+    padding: 5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: var(--neon-pink);
+    text-transform: uppercase;
+    text-shadow: 0 0 10px var(--neon-pink);
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: 2px;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0, 245, 255, 0.5), transparent);
+  }
+
+  /* CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    padding: 2rem;
+    position: relative;
+    transition: all 0.3s;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+
+  .card:hover::before { transform: scaleX(1); }
+  .card:hover {
+    border-color: rgba(0, 245, 255, 0.3);
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.1);
+    transform: translateY(-4px);
+  }
+
+  .card-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid;
+    display: inline-block;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .badge-review { color: var(--neon-cyan); border-color: var(--neon-cyan); background: rgba(0, 245, 255, 0.08); }
+  .badge-esport { color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(255, 0, 128, 0.08); }
+  .badge-hot { color: var(--neon-yellow); border-color: var(--neon-yellow); background: rgba(255, 255, 0, 0.08); }
+  .badge-event { color: var(--neon-purple); border-color: var(--neon-purple); background: rgba(191, 0, 255, 0.08); }
+
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+    line-height: 1.4;
+  }
+
+  .card-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    border-top: 1px solid var(--dark-border);
+    padding-top: 1rem;
+    margin-top: auto;
+  }
+
+  /* RATING */
+  .rating {
+    display: flex;
+    gap: 0.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .star { color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); }
+  .star.empty { color: var(--dark-border); text-shadow: none; }
+
+  .score-bar {
+    height: 4px;
+    background: var(--dark-border);
+    border-radius: 2px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--neon-cyan);
+  }
+
+  .score-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+  }
+
+  /* FEATURED */
+  .featured-card {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0;
+    background: var(--dark-card);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .featured-visual {
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(255, 0, 128, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    border-right: 1px solid rgba(0, 245, 255, 0.1);
+    min-height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .featured-visual::before {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(0, 245, 255, 0.2), transparent);
+    border-radius: 50%;
+    animation: pulse 3s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+
+  .featured-content { padding: 2.5rem; }
+
+  /* MENU */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .menu-item {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .menu-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 1px;
+    background: var(--neon-pink);
+    transition: width 0.4s;
+  }
+
+  .menu-item:hover::after { width: 100%; }
+  .menu-item:hover {
+    border-color: rgba(255, 0, 128, 0.3);
+    background: rgba(255, 0, 128, 0.03);
+  }
+
+  .menu-info { flex: 1; }
+
+  .menu-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+    letter-spacing: 1px;
+  }
+
+  .menu-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .menu-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--neon-purple);
+    border: 1px solid rgba(191, 0, 255, 0.3);
+    padding: 0.15rem 0.5rem;
+    margin-top: 0.5rem;
+    display: inline-block;
+    letter-spacing: 2px;
+  }
+
+  .menu-price {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .menu-emoji { font-size: 1.8rem; margin-right: 0.5rem; }
+
+  .menu-category {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--neon-pink);
+    text-shadow: 0 0 15px var(--neon-pink);
+    letter-spacing: 3px;
+    margin: 2.5rem 0 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 0, 128, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  /* DRINKS */
+  .drink-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drink-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 0;
+    background: linear-gradient(0deg, rgba(0, 245, 255, 0.08), transparent);
+    transition: height 0.4s;
+  }
+
+  .drink-card:hover::before { height: 100%; }
+  .drink-card:hover {
+    border-color: rgba(0, 245, 255, 0.4);
+    box-shadow: 0 0 25px rgba(0, 245, 255, 0.15);
+    transform: translateY(-3px);
+  }
+
+  .drink-emoji { font-size: 2.5rem; margin-bottom: 0.8rem; display: block; }
+
+  .drink-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 2px;
+    margin-bottom: 0.4rem;
+  }
+
+  .drink-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .drink-price {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 15px var(--neon-cyan);
+  }
+
+  .drink-abv {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--neon-pink);
+    letter-spacing: 2px;
+    margin-top: 0.3rem;
+  }
+
+  /* ESPORT TABLE */
+  .esport-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .esport-table th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    padding: 0.8rem 1.2rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+    background: rgba(0, 245, 255, 0.03);
+  }
+
+  .esport-table td {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--dark-border);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+
+  .esport-table tr:hover td {
+    background: rgba(0, 245, 255, 0.03);
+    color: var(--neon-cyan);
+  }
+
+  .team-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+  }
+
+  .team-flag { font-size: 1.2rem; margin-right: 0.5rem; }
+
+  .rank-1 .team-name { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+  .rank-2 .team-name { color: var(--text-primary); }
+  .rank-3 .team-name { color: #cd7f32; }
+
+  /* EVENTS */
+  .event-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-left: 3px solid var(--neon-pink);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+  }
+
+  .event-card:hover {
+    border-left-color: var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+    transform: translateX(4px);
+  }
+
+  .event-date {
+    text-align: center;
+    min-width: 70px;
+  }
+
+  .event-day {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--neon-pink);
+    text-shadow: 0 0 15px var(--neon-pink);
+    display: block;
+    line-height: 1;
+  }
+
+  .event-month {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .event-info { flex: 1; }
+
+  .event-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+  }
+
+  .event-details {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  .event-prize {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 15px var(--neon-yellow);
+  }
+
+  /* FOOTER */
+  footer {
+    background: rgba(3, 5, 8, 0.95);
+    border-top: 1px solid rgba(0, 245, 255, 0.15);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(0, 245, 255, 0.4));
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-addr {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 0.3rem;
+  }
+
+  .footer-open {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-green);
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px var(--neon-green);
+    margin-bottom: 2rem;
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .footer-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 2px;
+    transition: color 0.3s;
+    cursor: pointer;
+  }
+
+  .footer-links a:hover { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
+
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--dark-border);
+    letter-spacing: 2px;
+  }
+
+  /* TICKER */
+  .ticker {
+    background: var(--neon-pink);
+    color: var(--dark-bg);
+    padding: 0.4rem 0;
+    overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+  }
+
+  .ticker-inner {
+    display: flex;
+    animation: ticker 25s linear infinite;
+    white-space: nowrap;
+  }
+
+  .ticker-inner span { padding: 0 3rem; }
+
+  @keyframes ticker {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* CORNER DECORATIONS */
+  .corner-deco {
+    position: absolute;
+    width: 30px; height: 30px;
+  }
+
+  .corner-tl { top: 0; left: 0; border-top: 2px solid var(--neon-cyan); border-left: 2px solid var(--neon-cyan); }
+  .corner-tr { top: 0; right: 0; border-top: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
+  .corner-bl { bottom: 0; left: 0; border-bottom: 2px solid var(--neon-cyan); border-left: 2px solid var(--neon-cyan); }
+  .corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
+
+  /* NEON TEXT */
+  .neon-cyan { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
+  .neon-pink { color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); }
+  .neon-yellow { color: var(--neon-yellow); text-shadow: 0 0 15px var(--neon-yellow); }
+  .neon-green { color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green); }
+
+  /* LOADING BAR */
+  .loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+    position: fixed;
+    top: 70px; left: 0;
+    z-index: 999;
+    transition: width 0.3s;
+    box-shadow: 0 0 10px var(--neon-cyan);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .featured-card { grid-template-columns: 1fr; }
+    .featured-visual { min-height: 150px; }
+    .stats-bar { gap: 2rem; }
+    .event-card { flex-direction: column; text-align: center; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--dark-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--neon-cyan); }
+
+  /* MOBILE NAV */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 5px;
+  }
+  .hamburger span {
+    display: block;
+    width: 25px;
+    height: 2px;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 5px var(--neon-cyan);
+    transition: all 0.3s;
+  }
+
+  @media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 70px; left: 0; right: 0;
+      background: rgba(3,5,8,0.98);
+      flex-direction: column;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(0,245,255,0.2);
+    }
+    .nav-links.open { display: flex; }
+    .nav-status { display: none; }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,245,255,0.3), transparent);
+    margin: 0 2rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="loading-bar" id="loadingBar" style="width:60%"></div>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-logo">NEON.GRID</div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" class="active" onclick="showPage('home', this)">[ HOME ]</a></li>
+    <li><a href="#" onclick="showPage('reviews', this)">[ TESZTEK ]</a></li>
+    <li><a href="#" onclick="showPage('esport', this)">[ ESPORT ]</a></li>
+    <li><a href="#" onclick="showPage('events', this)">[ ESEMÉNYEK ]</a></li>
+    <li><a href="#" onclick="showPage('menu', this)">[ ÉTLAP ]</a></li>
+    <li><a href="#" onclick="showPage('drinks', this)">[ ITALLAP ]</a></li>
+    <li><a href="#" onclick="showPage('contact', this)">[ KAPCSOLAT ]</a></li>
+  </ul>
+  <div class="nav-status">
+    <div class="status-dot"></div>
+    NYITVA // 42 ONLINE
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker" style="position:fixed; top:70px; left:0; right:0; z-index:998">
+  <div class="ticker-inner">
+    <span>⚡ CS2 MAJOR DÖNTŐ — NATUS VINCERE VS TEAM VITALITY — 2025.03.15</span>
+    <span>🏆 VALORANT CHALLENGERS EU — DÖNTŐ HÉTVÉGE</span>
+    <span>🎮 ÚJ PC-K ÉRKEZTEK — RTXA5090 SETUP ELÉRHETŐ</span>
+    <span>🍺 HAPPY HOUR: 18:00–20:00 — MINDEN KOKTÉL –30%</span>
+    <span>🔥 LOL S15 PATCH TESZT ESTE 8-TÓL</span>
+    <span>💥 TOURNAMENT FRIDAY — NEVEZZ BE MÁR MA!</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ HOME PAGE ═══════════════════════════════ -->
+<div class="page active" id="page-home" style="padding-top: 94px;">
+
+  <div class="hero">
+    <div class="hero-eyebrow">// BUDAPEST // DISTRICT VII // EST. 2024</div>
+    <h1 class="hero-title">
+      <span class="line1">NEON</span>
+      <span class="line2">GRID</span>
+    </h1>
+    <p class="hero-subtitle">Gaming Bar &amp; Esport Lounge</p>
+    <div class="hero-buttons">
+      <button class="btn-primary" onclick="showPage('menu', document.querySelector('[onclick*=menu]'))">
+        ⚡ ÉTLAP
+      </button>
+      <button class="btn-secondary" onclick="showPage('events', document.querySelector('[onclick*=events]'))">
+        🏆 ESEMÉNYEK
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-number">48</span>
+      <span class="stat-label">Gaming Állomás</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" style="color:var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink);">360Hz</span>
+      <span class="stat-label">Max Refresh Rate</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" style="color:var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">1Gbps</span>
+      <span class="stat-label">Internet Sebesség</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" style="color:var(--neon-yellow); text-shadow: 0 0 20px var(--neon-yellow);">7/24</span>
+      <span class="stat-label">Nyitva (H–V)</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" style="color:var(--neon-green); text-shadow: 0 0 20px var(--neon-green);">100+</span>
+      <span class="stat-label">Elérhető Játék</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// LATEST //</span>
+      <h2 class="section-title">FRISS TARTALOM</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="featured-card card" style="position:relative; overflow:hidden;">
+        <div class="corner-deco corner-tl"></div>
+        <div class="corner-deco corner-tr"></div>
+        <div class="corner-deco corner-bl"></div>
+        <div class="corner-deco corner-br"></div>
+        <div class="featured-visual">🎮</div>
+        <div class="featured-content">
+          <span class="card-badge badge-hot">🔥 HOT TESZT</span>
+          <h3 class="card-title" style="font-size:1.4rem;">RTX A5090 — A MESTER VISSZATÉRT</h3>
+          <p class="card-text">Az NVIDIA új csúcskártyája minden korábbi rekordot megdönt. 4K-ban 240fps, ray tracing-gel együtt. Mi egy hétig gyötörtük — és sosem száradt ki a törölközőnk. A teljesítmény lenyűgöző, az ár kevésbé.</p>
+          <div class="rating">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            <span style="margin-left:0.5rem; font-family:'Orbitron',monospace; color:var(--neon-yellow); font-size:0.9rem;">9.8 / 10</span>
+          </div>
+          <button class="btn-primary" style="font-size:0.65rem; padding:0.6rem 1.5rem;" onclick="showPage('reviews', null)">TELJES TESZT →</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-esport">ESPORT</span>
+        <h3 class="card-title">TEAM LIQUID MEGNYERTE A KATOWICE MAJORT</h3>
+        <p class="card-text">Drámai döntőben, 2-1-es győzelemmel hódította el a csapat az idei első nagy tornát, 1 millió dolláros nyereménnyel.</p>
+        <div class="card-meta">
+          <span>2025.02.28</span>
+          <span class="neon-pink">CS2</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-review">TESZT</span>
+        <h3 class="card-title">ALIENWARE AW3225QF — 4K 240Hz VÁJ?</h3>
+        <p class="card-text">32 colos OLED monitor, tökéletes feketékkel és elképesztő kontraszttal. De megér-e 350.000 Ft-ot?</p>
+        <div class="score-label">
+          <span>Kép</span><span class="neon-cyan">9.5</span>
+        </div>
+        <div class="score-bar"><div class="score-fill" style="width:95%"></div></div>
+        <div class="score-label">
+          <span>Input lag</span><span class="neon-cyan">9.2</span>
+        </div>
+        <div class="score-bar"><div class="score-fill" style="width:92%"></div></div>
+        <div class="card-meta">
+          <span>2025.03.01</span>
+          <span class="neon-cyan">MONITOR</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-event">ESEMÉNY</span>
+        <h3 class="card-title">NEON.GRID MINI TOURNAMENT — CS2</h3>
+        <p class="card-text">Március 15-én saját tornát tartunk! 5v5, nyílt nevezés, díjalap: 150.000 Ft. Hozd a csapatod!</p>
+        <div class="card-meta">
+          <span>2025.03.15 // 18:00</span>
+          <span class="neon-yellow">🏆 150K Ft</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SETUPS SECTION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// SETUP //</span>
+      <h2 class="section-title">GÉPPARK</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="cards-grid">
+      <div class="card" style="border-color: rgba(0,245,255,0.3);">
+        <div style="font-size:2.5rem; margin-bottom:1rem;">💻</div>
+        <h3 class="card-title neon-cyan">ALPHA ZÓNA</h3>
+        <p class="card-text">16 PC // RTX 4080 // i9-14900K // 32GB DDR5 // 360Hz monitor. Professzionális esport edző zóna.</p>
+        <div class="card-meta"><span>16 ÁLLOMÁS</span><span class="neon-cyan">900 Ft/óra</span></div>
+      </div>
+      <div class="card" style="border-color: rgba(255,0,128,0.3);">
+        <div style="font-size:2.5rem; margin-bottom:1rem;">🖥️</div>
+        <h3 class="card-title neon-pink">BETA ZÓNA</h3>
+        <p class="card-text">20 PC // RTX 5090 // Ryzen 9 9950X // 64GB DDR5 // 4K 240Hz OLED. A legjobb élmény.</p>
+        <div class="card-meta"><span>20 ÁLLOMÁS</span><span class="neon-pink">1400 Ft/óra</span></div>
+      </div>
+      <div class="card" style="border-color: rgba(191,0,255,0.3);">
+        <div style="font-size:2.5rem; margin-bottom:1rem;">🎮</div>
+        <h3 class="card-title" style="color:var(--neon-purple); text-shadow:0 0 15px var(--neon-purple);">CONSOLE LOUNGE</h3>
+        <p class="card-text">PS5 Pro // Xbox Series X // Nintendo Switch // 65" OLED TV-kkel. Kanapén, lazán.</p>
+        <div class="card-meta"><span>12 ÁLLOMÁS</span><span style="color:var(--neon-purple); text-shadow:0 0 8px var(--neon-purple);">700 Ft/óra</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════ REVIEWS PAGE ═══════════════════════════════ -->
+<div class="page" id="page-reviews" style="padding-top: 94px;">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// TESZTEK //</span>
+      <h2 class="section-title">HARDVER &amp; JÁTÉK TESZTEK</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="cards-grid">
+
+      <div class="card">
+        <span class="card-badge badge-hot">🔥 KIEMELT</span>
+        <h3 class="card-title">RTX A5090 — BENCHMARK ÖSSZESÍTŐ</h3>
+        <p class="card-text">Az NVIDIA végre leváltotta a 4090-et. Az A5090 nem evolúció, hanem forradalom. DLSS 4.5, neural shaders, 48GB GDDR7.</p>
+        <div class="score-label"><span>4K Gaming</span><span class="neon-cyan">9.9</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:99%"></div></div>
+        <div class="score-label"><span>Ár/Érték</span><span class="neon-cyan">7.2</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:72%"></div></div>
+        <div class="score-label"><span>Hőkezelés</span><span class="neon-cyan">8.5</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:85%"></div></div>
+        <div class="card-meta"><span>GPU TESZT</span><span class="neon-yellow">9.5 / 10</span></div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-review">JÁTÉK TESZT</span>
+        <h3 class="card-title">CYBERPUNK 2.5 — PATH TRACING DLC</h3>
+        <p class="card-text">CDPR visszatért Night Citybe. Az új DLC 15 óra plusz tartalom, teljes path tracing rework, és egy megdöbbentő befejezés. Vissza lehet térni oda, ahol soha nem voltunk.</p>
+        <div class="score-label"><span>Grafika</span><span class="neon-cyan">10</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:100%"></div></div>
+        <div class="score-label"><span>Történet</span><span class="neon-cyan">9.0</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:90%"></div></div>
+        <div class="card-meta"><span>RPG / FPS</span><span class="neon-yellow">9.4 / 10</span></div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-review">PERIFÉRIA</span>
+        <h3 class="card-title">LOGITECH G PRO X 3 — EGÉR TESZT</h3>
+        <p class="card-text">52 gramm, HERO 3 szenzor, 36000 DPI, optikai kapcsolók. Ez lehet a generáció legjobb esport egere. Kézben tökéletes.</p>
+        <div class="score-label"><span>Szenzor</span><span class="neon-cyan">9.8</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:98%"></div></div>
+        <div class="score-label"><span>Súly</span><span class="neon-cyan">9.5</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:95%"></div></div>
+        <div class="card-meta"><span>EGÉR</span><span class="neon-yellow">9.6 / 10</span></div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-review">HEADSET</span>
+        <h3 class="card-title">STEELSERIES ARCTIS NOVA PRO X — TESZT</h3>
+        <p class="card-text">ANC, Hi-Res Audio, 360 térhang, cserélhető akkumulátor. A prémium gaming audio mindene benne van — de az ár is prémium.</p>
+        <div class="score-label"><span>Hangminőség</span><span class="neon-cyan">9.4</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:94%"></div></div>
+        <div class="score-label"><span>Komfort</span><span class="neon-cyan">8.8</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:88%"></div></div>
+        <div class="card-meta"><span>HEADSET</span><span class="neon-yellow">9.1 / 10</span></div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-review">JÁTÉK TESZT</span>
+        <h3 class="card-title">DEADLOCK — VALVE LEÁLL A CSENDBEN</h3>
+        <p class="card-text">Valve új hero shootere teljesen véletlenül lett gigantikus siker. MOBA mechanikák + TPS. Addiktív, egyedi és tömve van tartalommal. Már 2 millió aktív játékos.</p>
+        <div class="score-label"><span>Gameplay</span><span class="neon-cyan">9.3</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:93%"></div></div>
+        <div class="score-label"><span>Unique Factor</span><span class="neon-cyan">9.7</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:97%"></div></div>
+        <div class="card-meta"><span>SHOOTER / MOBA</span><span class="neon-yellow">9.4 / 10</span></div>
+      </div>
+
+      <div class="card">
+        <span class="card-badge badge-review">MONITOR</span>
+        <h3 class="card-title">LG 27GR95QE — OLED FPS BAJNOK</h3>
+        <p class="card-text">240Hz OLED, QHD felbontás, 0.03ms válaszidő. Aki CS2-t játszik, ezt akarja. A képminőség az egész kategóriát felülírja.</p>
+        <div class="score-label"><span>Response Time</span><span class="neon-cyan">10</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:100%"></div></div>
+        <div class="score-label"><span>Ár/Érték</span><span class="neon-cyan">8.5</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:85%"></div></div>
+        <div class="card-meta"><span>MONITOR</span><span class="neon-yellow">9.3 / 10</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ESPORT PAGE ═══════════════════════════════ -->
+<div class="page" id="page-esport" style="padding-top: 94px;">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// ESPORT //</span>
+      <h2 class="section-title">ESPORT HÍREK &amp; RANGLISTA</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <!-- NEWS -->
+    <div class="cards-grid" style="margin-bottom:4rem;">
+      <div class="card">
+        <span class="card-badge badge-esport">CS2</span>
+        <h3 class="card-title">NAVI VISSZATÉRT — MAJOR DÖNTŐBE JUTOTTAK</h3>
+        <p class="card-text">A Natus Vincere meglepetésszerűen jutott döntőbe az IEM Katowice-on. s1mple visszatérésével a csapat visszanyerte régi formáját, és a kritikusok most némuljanak el.</p>
+        <div class="card-meta"><span>2025.03.05</span><span class="neon-pink">IEM KATOWICE</span></div>
+      </div>
+      <div class="card">
+        <span class="card-badge badge-esport">VALORANT</span>
+        <h3 class="card-title">LOUD MEGNYERTE A VCT MASTERS BANGKOKOT</h3>
+        <p class="card-text">A brazil gigász simán söpörte le az európai mezőnyt. aspas ismét MVP, és talán minden idők legjobb VALORANT játékosává válik.</p>
+        <div class="card-meta"><span>2025.03.02</span><span class="neon-pink">VCT MASTERS</span></div>
+      </div>
+      <div class="card">
+        <span class="card-badge badge-esport">LOL</span>
+        <h3 class="card-title">T1 FAKER — MÉG EGY ÉVE A MEZŐNYBEN</h3>
+        <p class="card-text">A legendás Faker bejelentette, hogy 2025-ben is versenyez. A T1 kontraktja megújult, és a világ még egyszer láthatja a mestert küzdeni az S15 Világbajnokságon.</p>
+        <div class="card-meta"><span>2025.02.25</span><span class="neon-pink">LCK SPRING</span></div>
+      </div>
+      <div class="card">
+        <span class="card-badge badge-hot">BREAKING</span>
+        <h3 class="card-title">FAZE CLAN ÚJ ROSTER — 5 ISMERETLEN ARC</h3>
+        <p class="card-text">A FaZe Clan teljesen újjáépítette CS2-es csapatát. Öt fiatal tehetséget szerződtettetek, akik a challenger scene-ből érkeznek. A fogadóirodák szkeptikusak.</p>
+        <div class="card-meta"><span>2025.03.07</span><span class="neon-yellow">ROSTER MOVE</span></div>
+      </div>
+    </div>
+
+    <!-- RANKINGS -->
+    <div class="section-header" style="margin-top:2rem;">
+      <span class="section-tag">// RANK //</span>
+      <h2 class="section-title">CS2 WORLD RANKING</h2>
+      <div class="section-line"></div>
+    </div>
+    <div style="overflow-x:auto; margin-bottom:3rem;">
+      <table class="esport-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>CSAPAT</th>
+            <th>ORSZÁG</th>
+            <th>PONTSZÁM</th>
+            <th>VÁLTOZÁS</th>
+            <th>UTOLSÓ TORNA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="rank-1">
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-yellow); text-shadow:0 0 10px var(--neon-yellow);">01</td>
+            <td><span class="team-name">TEAM VITALITY</span></td>
+            <td><span class="team-flag">🇫🇷</span> Franciaország</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">12,480</td>
+            <td style="color:var(--neon-green);">▲ +120</td>
+            <td>IEM Katowice 2025</td>
+          </tr>
+          <tr class="rank-2">
+            <td style="font-family:'Orbitron',monospace; color:#c0c0c0;">02</td>
+            <td><span class="team-name">NATUS VINCERE</span></td>
+            <td><span class="team-flag">🇺🇦</span> Ukrajna</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">11,950</td>
+            <td style="color:var(--neon-green);">▲ +340</td>
+            <td>IEM Katowice 2025</td>
+          </tr>
+          <tr class="rank-3">
+            <td style="font-family:'Orbitron',monospace; color:#cd7f32;">03</td>
+            <td><span class="team-name">G2 ESPORTS</span></td>
+            <td><span class="team-flag">🇪🇸</span> Spanyolország</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">11,200</td>
+            <td style="color:var(--text-muted);">— 0</td>
+            <td>PGL Major 2025</td>
+          </tr>
+          <tr>
+            <td style="font-family:'Orbitron',monospace; color:var(--text-muted);">04</td>
+            <td><span class="team-name">FaZe CLAN</span></td>
+            <td><span class="team-flag">🌍</span> Multinacionális</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">10,800</td>
+            <td style="color:var(--neon-pink);">▼ -200</td>
+            <td>ESL Pro League S21</td>
+          </tr>
+          <tr>
+            <td style="font-family:'Orbitron',monospace; color:var(--text-muted);">05</td>
+            <td><span class="team-name">TEAM LIQUID</span></td>
+            <td><span class="team-flag">🇺🇸</span> USA</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">10,400</td>
+            <td style="color:var(--neon-green);">▲ +80</td>
+            <td>ESL Pro League S21</td>
+          </tr>
+          <tr>
+            <td style="font-family:'Orbitron',monospace; color:var(--text-muted);">06</td>
+            <td><span class="team-name">CLOUD9</span></td>
+            <td><span class="team-flag">🇺🇸</span> USA</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">9,750</td>
+            <td style="color:var(--text-muted);">— 0</td>
+            <td>IEM Dallas 2025</td>
+          </tr>
+          <tr>
+            <td style="font-family:'Orbitron',monospace; color:var(--text-muted);">07</td>
+            <td><span class="team-name">HEROIC</span></td>
+            <td><span class="team-flag">🇩🇰</span> Dánia</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">9,200</td>
+            <td style="color:var(--neon-green);">▲ +150</td>
+            <td>IEM Katowice 2025</td>
+          </tr>
+          <tr>
+            <td style="font-family:'Orbitron',monospace; color:var(--text-muted);">08</td>
+            <td><span class="team-name">ASTRALIS</span></td>
+            <td><span class="team-flag">🇩🇰</span> Dánia</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">8,900</td>
+            <td style="color:var(--neon-pink);">▼ -100</td>
+            <td>BLAST Premier 2025</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- VALORANT RANKING -->
+    <div class="section-header">
+      <span class="section-tag">// VCT //</span>
+      <h2 class="section-title">VALORANT CIRCUIT RANKING</h2>
+      <div class="section-line"></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="esport-table">
+        <thead>
+          <tr>
+            <th>#</th><th>CSAPAT</th><th>RÉGIÓ</th><th>CIRCUIT PONT</th><th>VÁLTOZÁS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="rank-1">
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-yellow);">01</td>
+            <td><span class="team-name">LOUD</span></td>
+            <td><span class="team-flag">🇧🇷</span> Americas</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">8,200</td>
+            <td style="color:var(--neon-green);">▲ +500</td>
+          </tr>
+          <tr class="rank-2">
+            <td style="font-family:'Orbitron',monospace; color:#c0c0c0;">02</td>
+            <td><span class="team-name">SENTINELS</span></td>
+            <td><span class="team-flag">🇺🇸</span> Americas</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">7,850</td>
+            <td style="color:var(--neon-green);">▲ +200</td>
+          </tr>
+          <tr class="rank-3">
+            <td style="font-family:'Orbitron',monospace; color:#cd7f32;">03</td>
+            <td><span class="team-name">TEAM HERETICS</span></td>
+            <td><span class="team-flag">🇪🇸</span> EMEA</td>
+            <td style="font-family:'Orbitron',monospace; color:var(--neon-cyan);">7,400</td>
+            <td style="color:var(--text-muted);">— 0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ EVENTS PAGE ═══════════════════════════════ -->
+<div class="page" id="page-events" style="padding-top: 94px;">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// EVENTS //</span>
+      <h2 class="section-title">KÖZELGŐ ESEMÉNYEK</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="event-card">
+      <div class="event-date">
+        <span class="event-day">15</span>
+        <span class="event-month">MÁR 2025</span>
+      </div>
+      <div class="event-info">
+        <div class="event-title">NEON.GRID NYÍLT CS2 TORNA</div>
+        <div class="event-details">5V5 // NYÍLT NEVEZÉS // MAX 16 CSAPAT // 18:00 KEZDÉS</div>
+      </div>
+      <div class="event-prize">💰 150 000 Ft</div>
+    </div>
+
+    <div class="event-card">
+      <div class="event-date">
+        <span class="event-day">22</span>
+        <span class="event-month">MÁR 2025</span>
+      </div>
+      <div class="event-info">
+        <div class="event-title">LOL HOUSE TOURNAMENT — S15 PATCH</div>
+        <div class="event-details">1V1 MID ONLY // NYÍLT NEVEZÉS // MINDEN RANK // 17:00 KEZDÉS</div>
+      </div>
+      <div class="event-prize">💰 80 000 Ft</div>
+    </div>
+
+    <div class="event-card" style="border-left-color: var(--neon-purple);">
+      <div class="event-date">
+        <span class="event-day" style="color:var(--neon-purple); text-shadow:0 0 15px var(--neon-purple);">29</span>
+        <span class="event-month">MÁR 2025</span>
+      </div>
+      <div class="event-info">
+        <div class="event-title">RETRO GAMING NIGHT — 90's &amp; 2000's</div>
+        <div class="event-details">QUAKE // STARCRAFT BW // CS 1.6 // WARCRAFT III // SZABAD BELÉPÉS</div>
+      </div>
+      <div class="event-prize" style="color:var(--neon-purple); text-shadow:0 0 15px var(--neon-purple);">🎮 FREE</div>
+    </div>
+
+    <div class="event-card" style="border-left-color: var(--neon-yellow);">
+      <div class="event-date">
+        <span class="event-day" style="color:var(--neon-yellow); text-shadow:0 0 15px var(--neon-yellow);">05</span>
+        <span class="event-month">ÁPR 2025</span>
+      </div>
+      <div class="event-info">
+        <div class="event-title">VALORANT OPEN CUP — NEON.GRID SERIES</div>
+        <div class="event-details">5V5 // 20 CSAPAT MAX // REGISZTRÁCIÓ KÖTELEZŐ // 16:00</div>
+      </div>
+      <div class="event-prize">💰 200 000 Ft</div>
+    </div>
+
+    <div class="event-card" style="border-left-color: var(--neon-green);">
+      <div class="event-date">
+        <span class="event-day" style="color:var(--neon-green); text-shadow:0 0 15px var(--neon-green);">12</span>
+        <span class="event-month">ÁPR 2025</span>
+      </div>
+      <div class="event-info">
+        <div class="event-title">GAMING BAR BIRTHDAY PARTY</div>
+        <div class="event-details">1 ÉVES ÉVFORDULÓ // DJ SET // INGYENES GAMING // SPECIALS</div>
+      </div>
+      <div class="event-prize" style="color:var(--neon-green); text-shadow:0 0 15px var(--neon-green);">🎉 PARTY</div>
+    </div>
+
+    <div style="margin-top:3rem; padding:2rem; border:1px solid rgba(0,245,255,0.2); background:rgba(0,245,255,0.03);">
+      <h3 style="font-family:'Orbitron',monospace; color:var(--neon-cyan); margin-bottom:1rem; letter-spacing:2px;">📋 NEVEZÉSI INFÓK</h3>
+      <p style="color:var(--text-muted); line-height:1.8; font-size:0.9rem;">
+        Nevezni az info@neongrid.hu e-mail címen, vagy személyesen a bárban lehet. A nevezési díj tornánként változó (általában 2.000–5.000 Ft/fő). Minden résztvevő kap 1 óra ingyenes gaming időt. Hozd a csapatod — a bajnoknak kijár a fal!
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MENU PAGE ═══════════════════════════════ -->
+<div class="page" id="page-menu" style="padding-top: 94px;">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// FOOD //</span>
+      <h2 class="section-title">ÉTLAP</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p style="color:var(--text-muted); font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:2px; margin-bottom:2rem;">
+      // KONYHA NYITVA: H–CS 16:00–02:00 // P–SZO 14:00–04:00 // V 14:00–00:00 //
+    </p>
+
+    <div class="menu-category">⚡ BURGEREK</div>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <span class="menu-emoji">🍔</span>
+        <div class="menu-info">
+          <div class="menu-name">PIXEL BURGER</div>
+          <div class="menu-desc">Angus marha, cheddar, bacon, BBQ szósz, saláta, paradicsom, jalapeno mayo</div>
+          <span class="menu-tag">BESTSELLER</span>
+        </div>
+        <div class="menu-price">2 490 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🍔</span>
+        <div class="menu-info">
+          <div class="menu-name">NEON DOUBLE</div>
+          <div class="menu-desc">Dupla 180g marha patty, füstölt gouda, crispy onion, chipotle mayo, brioche bun</div>
+          <span class="menu-tag">PREMIUM</span>
+        </div>
+        <div class="menu-price">3 290 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🌿</span>
+        <div class="menu-info">
+          <div class="menu-name">RESPAWN VEGAN</div>
+          <div class="menu-desc">Beyond Meat patty, avokádó, vegan mayo, rukola, szárított paradicsom, szezámmagsósított bun</div>
+          <span class="menu-tag">VEGAN</span>
+        </div>
+        <div class="menu-price">2 790 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🍗</span>
+        <div class="menu-info">
+          <div class="menu-name">SPAWNKILL CHICKEN</div>
+          <div class="menu-desc">Ropogós csirkemell, sriracha szósz, coleslaw, pickles, koreai fűszerek</div>
+        </div>
+        <div class="menu-price">2 690 Ft</div>
+      </div>
+    </div>
+
+    <div class="menu-category">🔥 HOT DOGS &amp; WRAPS</div>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <span class="menu-emoji">🌭</span>
+        <div class="menu-info">
+          <div class="menu-name">CYBERPUNK DOG</div>
+          <div class="menu-desc">Grill frankfurter, ropogós hagyma, sriracha, mustár, szalonna bits, neon sárga mustármártás</div>
+          <span class="menu-tag">SPICY 🌶️</span>
+        </div>
+        <div class="menu-price">1 890 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🌯</span>
+        <div class="menu-info">
+          <div class="menu-name">BATTLE ROYALE WRAP</div>
+          <div class="menu-desc">Csirke, tex-mex, cheddar, jalapeno, saláta, guacamole, tortilla</div>
+        </div>
+        <div class="menu-price">2 190 Ft</div>
+      </div>
+    </div>
+
+    <div class="menu-category">🍟 SNACKEK &amp; KÖRETOK</div>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <span class="menu-emoji">🍟</span>
+        <div class="menu-info">
+          <div class="menu-name">LOADED FRIES</div>
+          <div class="menu-desc">Sült krumpli, cheddar szósz, bacon bits, tejföl, snidling</div>
+          <span class="menu-tag">SHARING</span>
+        </div>
+        <div class="menu-price">1 690 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🧀</span>
+        <div class="menu-info">
+          <div class="menu-name">MOZZARELLA STICKS</div>
+          <div class="menu-desc">6 db panírozott mozzarella, marinara mártással</div>
+        </div>
+        <div class="menu-price">1 390 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🫛</span>
+        <div class="menu-info">
+          <div class="menu-name">NACHOS DE LUXE</div>
+          <div class="menu-desc">Tortilla chips, guacamole, pico de gallo, jalapeño, sour cream, queso</div>
+          <span class="menu-tag">SHARING</span>
+        </div>
+        <div class="menu-price">1 990 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🍗</span>
+        <div class="menu-info">
+          <div class="menu-name">CHICKEN WINGS (6 DB)</div>
+          <div class="menu-desc">Buffalo, BBQ, vagy Korean-style // Bleu cheese dip</div>
+          <span class="menu-tag">SPICY OPTION 🌶️</span>
+        </div>
+        <div class="menu-price">1 990 Ft</div>
+      </div>
+    </div>
+
+    <div class="menu-category">🌙 ÉJSZAKAI MENÜ <span style="font-size:0.7rem; color:var(--text-muted);">(00:00–04:00)</span></div>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <span class="menu-emoji">🍕</span>
+        <div class="menu-info">
+          <div class="menu-name">MIDNIGHT PIZZA SLICE</div>
+          <div class="menu-desc">Napi 3 féle pizza szelet, mozzarella, paradicsom alap, friss fűszerek</div>
+          <span class="menu-tag">ÉJJELI MENÜ</span>
+        </div>
+        <div class="menu-price">890 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🥪</span>
+        <div class="menu-info">
+          <div class="menu-name">GRID TOAST</div>
+          <div class="menu-desc">Sajtos-sonkás toast, tükörtojás, ketchup — egyszerű, de hatékony</div>
+        </div>
+        <div class="menu-price">990 Ft</div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem; padding:1.5rem; border:1px solid rgba(255,255,0,0.2); background:rgba(255,255,0,0.03);">
+      <p style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--neon-yellow); letter-spacing:2px;">
+        ⚠️ ALLERGIA INFO: Kérj részletes allergén listát a személyzettől. Glutén-, tej- és tojásmentes opciók elérhetők előzetes egyeztetéssel. Minden adag frissen készül.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DRINKS PAGE ═══════════════════════════════ -->
+<div class="page" id="page-drinks" style="padding-top: 94px;">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// BAR //</span>
+      <h2 class="section-title">ITALLAP</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p style="color:var(--text-muted); font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:2px; margin-bottom:2rem;">
+      // HAPPY HOUR: MINDEN NAP 18:00–20:00 — KOKTÉLOK –30% //
+    </p>
+
+    <!-- SIGNATURE COCKTAILS -->
+    <div class="menu-category">🍹 SIGNATURE KOKTÉLOK</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1.2rem; margin-bottom:2rem;">
+
+      <div class="drink-card">
+        <span class="drink-emoji">🔵</span>
+        <div class="drink-name">NEON RUSH</div>
+        <div class="drink-desc">Vodka, Blue Curaçao, tonic, lime, kék LED jégkocka illúzió</div>
+        <div class="drink-price">2 490 Ft</div>
+        <div class="drink-abv">13% ABV</div>
+      </div>
+
+      <div class="drink-card" style="border-color:rgba(255,0,128,0.3);">
+        <span class="drink-emoji">🩷</span>
+        <div class="drink-name">PIXEL PUNCH</div>
+        <div class="drink-desc">Gin, gránátalma, lime, soda, friss menta, éhezős szívószál</div>
+        <div class="drink-price">2 290 Ft</div>
+        <div class="drink-abv">11% ABV</div>
+      </div>
+
+      <div class="drink-card" style="border-color:rgba(191,0,255,0.3);">
+        <span class="drink-emoji">💜</span>
+        <div class="drink-name">RESPAWN</div>
+        <div class="drink-desc">Dark rum, butterfly pea tea, citrom, méz — kék-lila színváltó koktél</div>
+        <div class="drink-price">2 690 Ft</div>
+        <div class="drink-abv">14% ABV</div>
+      </div>
+
+      <div class="drink-card" style="border-color:rgba(255,255,0,0.3);">
+        <span class="drink-emoji">⚡</span>
+        <div class="drink-name">OVERCLOCK</div>
+        <div class="drink-desc">Bourbon, méz, cayenne, citrom, gyömbérsör — éget, de érdemes</div>
+        <div class="drink-price">2 890 Ft</div>
+        <div class="drink-abv">16% ABV</div>
+      </div>
+
+      <div class="drink-card">
+        <span class="drink-emoji">🌿</span>
+        <div class="drink-name">HEADSHOT</div>
+        <div class="drink-desc">Tequila, kivi, lime, agavé, só, erős zöld jalapeno szél</div>
+        <div class="drink-price">2 590 Ft</div>
+        <div class="drink-abv">15% ABV</div>
+      </div>
+
+      <div class="drink-card" style="border-color:rgba(57,255,20,0.3);">
+        <span class="drink-emoji">🟢</span>
+        <div class="drink-name">MATRIX DROP</div>
+        <div class="drink-desc">Midori, vodka, ananász, lime, floating matcha foam</div>
+        <div class="drink-price">2 490 Ft</div>
+        <div class="drink-abv">12% ABV</div>
+      </div>
+
+    </div>
+
+    <!-- SHOTS -->
+    <div class="menu-category">💥 SHOTOK</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
+      <div class="drink-card">
+        <span class="drink-emoji">🔴</span>
+        <div class="drink-name">KILL FEED</div>
+        <div class="drink-desc">Tequila + Tabasco + só</div>
+        <div class="drink-price">990 Ft</div>
+        <div class="drink-abv">38% ABV</div>
+      </div>
+      <div class="drink-card">
+        <span class="drink-emoji">⬛</span>
+        <div class="drink-name">BLACK SCREEN</div>
+        <div class="drink-desc">Jäger + espresso + baileys</div>
+        <div class="drink-price">1 090 Ft</div>
+        <div class="drink-abv">32% ABV</div>
+      </div>
+      <div class="drink-card">
+        <span class="drink-emoji">🌈</span>
+        <div class="drink-name">RGB SHOT</div>
+        <div class="drink-desc">Grenadine + Midori + Blue Curaçao réteg</div>
+        <div class="drink-price">1 190 Ft</div>
+        <div class="drink-abv">18% ABV</div>
+      </div>
+    </div>
+
+    <!-- ENERGY & SOFT -->
+    <div class="menu-category">⚡ ENERGY &amp; ALKOHOLMENTES</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:2rem;">
+      <div class="drink-card" style="border-color:rgba(57,255,20,0.3);">
+        <span class="drink-emoji">🟢</span>
+        <div class="drink-name">MONSTER ENERGY</div>
+        <div class="drink-desc">Original, Ultra, Mango Loco — hidegen, jéggel</div>
+        <div class="drink-price">990 Ft</div>
+        <div class="drink-abv">0% / alkoholmentes</div>
+      </div>
+      <div class="drink-card">
+        <span class="drink-emoji">🔵</span>
+        <div class="drink-name">RED BULL</div>
+        <div class="drink-desc">Classic / Sugar Free / Summer Edition</div>
+        <div class="drink-price">890 Ft</div>
+        <div class="drink-abv">0% / alkoholmentes</div>
+      </div>
+      <div class="drink-card" style="border-color:rgba(0,245,255,0.3);">
+        <span class="drink-emoji">🫧</span>
+        <div class="drink-name">GAMER LEMONADE</div>
+        <div class="drink-desc">Házi limonádé, B-vitaminok, citrom-ginger-turmeric</div>
+        <div class="drink-price">990 Ft</div>
+        <div class="drink-abv">0% / alkoholmentes</div>
+      </div>
+      <div class="drink-card">
+        <span class="drink-emoji">🧃</span>
+        <div class="drink-name">FREEZE SLUSHIE</div>
+        <div class="drink-desc">Napi 3 féle ízben, slushie gépből</div>
+        <div class="drink-price">790 Ft</div>
+        <div class="drink-abv">0% / alkoholmentes</div>
+      </div>
+    </div>
+
+    <!-- BEER -->
+    <div class="menu-category">🍺 CSAPOLT SÖRÖK</div>
+    <div class="menu-grid" style="margin-bottom:2rem;">
+      <div class="menu-item">
+        <span class="menu-emoji">🍺</span>
+        <div class="menu-info">
+          <div class="menu-name">DREHER GOLD (0.5L)</div>
+          <div class="menu-desc">Klasszikus magyar lager, frissen csapolt</div>
+        </div>
+        <div class="menu-price">890 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🍺</span>
+        <div class="menu-info">
+          <div class="menu-name">HEINEKEN (0.5L)</div>
+          <div class="menu-desc">Holland prémium lager</div>
+        </div>
+        <div class="menu-price">990 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🍺</span>
+        <div class="menu-info">
+          <div class="menu-name">CRAFTBEER ROTÁCIÓ</div>
+          <div class="menu-desc">Heti rotáló helyi IPA / Stout / Wheat — kérdezd a csapot!</div>
+          <span class="menu-tag">WEEKLY SPECIAL</span>
+        </div>
+        <div class="menu-price">1 290 Ft</div>
+      </div>
+    </div>
+
+    <!-- HOT -->
+    <div class="menu-category">☕ MELEG ITALOK</div>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <span class="menu-emoji">☕</span>
+        <div class="menu-info">
+          <div class="menu-name">ESPRESSO / DUPLA</div>
+          <div class="menu-desc">Saját keverék, 100% arabica</div>
+        </div>
+        <div class="menu-price">490 / 690 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🧋</span>
+        <div class="menu-info">
+          <div class="menu-name">GAMER LATTE</div>
+          <div class="menu-desc">Dupla espresso, habosított tej, neon szirmos latte art</div>
+          <span class="menu-tag">BESTSELLER</span>
+        </div>
+        <div class="menu-price">1 190 Ft</div>
+      </div>
+      <div class="menu-item">
+        <span class="menu-emoji">🍵</span>
+        <div class="menu-info">
+          <div class="menu-name">MATCHA LATTE</div>
+          <div class="menu-desc">Ceremonial grade matcha, oat milk, agavé</div>
+          <span class="menu-tag">VEGAN</span>
+        </div>
+        <div class="menu-price">1 290 Ft</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CONTACT PAGE ═══════════════════════════════ -->
+<div class="page" id="page-contact" style="padding-top: 94px;">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">// INFO //</span>
+      <h2 class="section-title">KAPCSOLAT &amp; HELYSZÍN</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:3rem;">
+
+      <div style="background:var(--dark-card); border:1px solid var(--dark-border); padding:2.5rem; position:relative;">
+        <div class="corner-deco corner-tl"></div>
+        <div class="corner-deco corner-br"></div>
+        <h3 style="font-family:'Orbitron',monospace; color:var(--neon-cyan); font-size:1rem; letter-spacing:3px; margin-bottom:2rem; text-shadow:0 0 15px var(--neon-cyan);">📍 HELYSZÍN</h3>
+        <div style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; line-height:2.2; color:var(--text-muted); letter-spacing:1px;">
+          <div style="color:var(--text-primary); font-size:0.95rem; margin-bottom:0.5rem;">NEON.GRID Gaming Bar</div>
+          <div>Budapest, VII. kerület</div>
+          <div>Kazinczy utca 24. fszt. 2.</div>
+          <div style="margin-top:1rem; color:var(--neon-green); text-shadow:0 0 8px var(--neon-green);">🚇 Astoria M2 — 3 perc séta</div>
+          <div style="color:var(--neon-green); text-shadow:0 0 8px var(--neon-green);">🚌 47, 49-es villamos</div>
+          <div style="margin-top:1rem;">📧 info@neongrid.hu</div>
+          <div>📞 +36 1 234 5678</div>
+        </div>
+      </div>
+
+      <div style="background:var(--dark-card); border:1px solid var(--dark-border); padding:2.5rem;">
+        <h3 style="font-family:'Orbitron',monospace; color:var(--neon-pink); font-size:1rem; letter-spacing:3px; margin-bottom:2rem; text-shadow:0 0 15px var(--neon-pink);">🕐 NYITVATARTÁS</h3>
+        <div style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; line-height:2.5; color:var(--text-muted); letter-spacing:1px;">
+          <div style="display:flex; justify-content:space-between;"><span>HÉTFŐ – CSÜTÖRTÖK</span><span style="color:var(--neon-cyan);">16:00 – 02:00</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>PÉNTEK</span><span style="color:var(--neon-cyan);">14:00 – 04:00</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>SZOMBAT</span><span style="color:var(--neon-cyan);">12:00 – 04:00</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>VASÁRNAP</span><span style="color:var(--neon-cyan);">12:00 – 00:00</span></div>
+          <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--dark-border); color:var(--neon-yellow); display:flex; justify-content:space-between;">
+            <span>⚡ HAPPY HOUR (minden nap)</span><span>18:00 – 20:00</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:var(--dark-card); border:1px solid var(--dark-border); padding:2.5rem; margin-bottom:2rem;">
+      <h3 style="font-family:'Orbitron',monospace; color:var(--neon-yellow); font-size:1rem; letter-spacing:3px; margin-bottom:2rem; text-shadow:0 0 15px var(--neon-yellow);">💰 ÁRLISTA — GAMING</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1.5rem;">
+        <div style="border:1px solid rgba(0,245,255,0.2); padding:1.5rem; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">💻</div>
+          <div style="font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--neon-cyan); margin-bottom:0.3rem;">ALPHA ZÓNA</div>
+          <div style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-muted); margin-bottom:0.8rem;">RTX 4080 // 360Hz</div>
+          <div style="font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:800; color:var(--neon-cyan); text-shadow:0 0 15px var(--neon-cyan);">900 Ft/h</div>
+        </div>
+        <div style="border:1px solid rgba(255,0,128,0.2); padding:1.5rem; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">🖥️</div>
+          <div style="font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--neon-pink); margin-bottom:0.3rem;">BETA ZÓNA</div>
+          <div style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-muted); margin-bottom:0.8rem;">RTX 5090 // 4K OLED</div>
+          <div style="font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:800; color:var(--neon-pink); text-shadow:0 0 15px var(--neon-pink);">1400 Ft/h</div>
+        </div>
+        <div style="border:1px solid rgba(191,0,255,0.2); padding:1.5rem; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">🎮</div>
+          <div style="font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--neon-purple); margin-bottom:0.3rem;">CONSOLE LOUNGE</div>
+          <div style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-muted); margin-bottom:0.8rem;">PS5 Pro / Xbox / Switch</div>
+          <div style="font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:800; color:var(--neon-purple); text-shadow:0 0 15px var(--neon-purple);">700 Ft/h</div>
+        </div>
+        <div style="border:1px solid rgba(57,255,20,0.2); padding:1.5rem; text-align:center;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">🏆</div>
+          <div style="font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--neon-green); margin-bottom:0.3rem;">NAPI BÉRLET</div>
+          <div style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-muted); margin-bottom:0.8rem;">8 óra bármely zónában</div>
+          <div style="font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:800; color:var(--neon-green); text-shadow:0 0 15px var(--neon-green);">5 990 Ft</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--dark-card); border:1px solid rgba(255,0,128,0.2); padding:2rem; text-align:center;">
+      <h3 style="font-family:'Orbitron',monospace; color:var(--neon-pink); font-size:1rem; letter-spacing:3px; margin-bottom:1rem;">📱 SOCIAL MEDIA</h3>
+      <div style="display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; font-family:'Share Tech Mono',monospace; font-size:0.8rem; letter-spacing:2px;">
+        <span style="color:var(--neon-cyan);">📸 @neongrid.hu</span>
+        <span style="color:var(--neon-pink);">🎮 /neongridbar</span>
+        <span style="color:var(--neon-purple);">💬 discord.gg/neongrid</span>
+        <span style="color:var(--neon-yellow);">📺 twitch.tv/neongrid</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">NEON.GRID</div>
+  <div class="footer-addr">Budapest VII., Kazinczy u. 24. — info@neongrid.hu</div>
+  <div class="footer-open">● MOST NYITVA — 42 AKTÍV JÁTÉKOS</div>
+  <div class="footer-links">
+    <a onclick="showPage('home', null)">HOME</a>
+    <a onclick="showPage('reviews', null)">TESZTEK</a>
+    <a onclick="showPage('esport', null)">ESPORT</a>
+    <a onclick="showPage('events', null)">ESEMÉNYEK</a>
+    <a onclick="showPage('menu', null)">ÉTLAP</a>
+    <a onclick="showPage('drinks', null)">ITALLAP</a>
+    <a onclick="showPage('contact', null)">KAPCSOLAT</a>
+  </div>
+  <div class="footer-copy">© 2025 NEON.GRID GAMING BAR // ALL RIGHTS RESERVED // BUDAPEST, HU</div>
+</footer>
+
+<script>
+  // Loading bar
+  window.addEventListener('load', () => {
+    const bar = document.getElementById('loadingBar');
+    bar.style.width = '100%';
+    setTimeout(() => { bar.style.opacity = '0'; }, 800);
+  });
+
+  // Page navigation
+  function showPage(pageId, clickedEl) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    // Show target
+    const target = document.getElementById('page-' + pageId);
+    if (target) target.classList.add('active');
+    // Update nav
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    if (clickedEl) clickedEl.classList.add('active');
+    // Scroll top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Close mobile nav
+    document.getElementById('navLinks').classList.remove('open');
+  }
+
+  // Mobile nav toggle
+  function toggleNav() {
+    document.getElementById('navLinks').classList.toggle('open');
+  }
+
+  // Glitch effect on logo click
+  document.querySelector('.nav-logo').addEventListener('click', () => {
+    showPage('home', document.querySelector('.nav-links a'));
+  });
+
+  // Cursor trail effect
+  document.addEventListener('mousemove', (e) => {
+    const trail = document.createElement('div');
+    trail.style.cssText = `
+      position: fixed;
+      left: ${e.clientX}px;
+      top: ${e.clientY}px;
+      width: 4px;
+      height: 4px;
+      background: rgba(0, 245, 255, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99998;
+      transform: translate(-50%, -50%);
+      animation: trailFade 0.5s forwards;
+    `;
+    document.body.appendChild(trail);
+    setTimeout(() => trail.remove(), 500);
+  });
+
+  // Add trail animation
+  const trailStyle = document.createElement('style');
+  trailStyle.textContent = `@keyframes trailFade { to { opacity:0; transform: translate(-50%,-50%) scale(0); } }`;
+  document.head.appendChild(trailStyle);
+
+  // Animate stats on load
+  document.querySelectorAll('.stat-number').forEach(el => {
+    el.style.animation = 'fadeInUp 0.8s ease both';
+  });
+</script>
+</body>
+</html>
